@@ -31,6 +31,8 @@ Le premier essai utilisateur dans Wokwi a échoué à l’installation de `Dalla
 
 L’essai utilisateur suivant confirme la compilation et le démarrage du programme complet dans Wokwi : le moniteur affiche `FROID CONNECT`, puis six mesures `seq=0` à `seq=5`, à `5.00 °C`, avec l’état `NORMAL`. La lecture du DS18B20 est donc observée. Aucune ligne HTTP n’est présente dans cet extrait. Au contrôle effectué après réception, MongoDB ne contient encore aucune mesure de source `wokwi`, alors que l’API locale, MongoDB, Firebase et le tunnel HTTPS répondent correctement. L’indication `net=active` du firmware signifie que les envois ne sont pas mis en pause ; elle ne prouve pas une connexion Wi-Fi ou un envoi réussi.
 
+L’essai utilisateur à 12 °C confirme ensuite la temporisation : `PENDING` de 0 à 25 secondes, puis `ALARM` à 30 secondes (`seq=6`) et à 35 secondes. La capture montre la LED rouge allumée et le pictogramme du buzzer actif ; l’utilisateur confirme le déclenchement de l’alarme et du voyant. La température initiale a été modifiée dans `diagram.json`, puis la simulation relancée, car l’utilisateur ne parvenait pas à ouvrir le réglage du capteur par clic. Le retour à 5 °C pendant une même exécution reste à observer. L’icône Wi-Fi apparaît barrée sur cette capture ; le contrôle serveur ne relève toujours aucune mesure Wokwi, avec une API et un tunnel accessibles.
+
 Le contrôle Docker a utilisé des conteneurs temporaires, une base séparée et les ports 8001/9001/9100 afin de conserver le tableau de bord de l’utilisateur sur 8000. Les 100 mesures de démonstration ont été acceptées, puis les quatre scénarios navigateur ont réussi sur cette instance, y compris la connexion Firebase. Les conteneurs temporaires ont ensuite été arrêtés. La commande Compose de démarrage du profil complet sur ses ports habituels n’a pas été exécutée simultanément aux services natifs.
 
 Après le dernier ajustement des ports d’émulation configurables, le contrôle Ruff et les 44 tests Python sans services externes ont également réussi ; le test d’intégration externe avait réussi lors du passage complet de 45 tests précédent.
@@ -73,7 +75,8 @@ Les fichiers suivants sont générés dans `.runtime`, qui n’est pas versionn�
 |---|---|
 | Compilation, démarrage et lecture du DS18B20 dans le navigateur Wokwi | Confirmés par la capture et les six mesures à 5 °C transmises par l’utilisateur |
 | Envoi Wokwi réel vers le tunnel et affichage de ces mesures | À confirmer ; aucune mesure Wokwi reçue au dernier contrôle |
-| Buzzer effectivement audible et LED lors d’un dépassement prolongé | À réaliser avec l’utilisateur |
+| Déclenchement de l’alarme et de la LED après 30 secondes à 12 °C | Confirmé par l’utilisateur et la capture du moniteur à `ALARM`, LED allumée et buzzer actif |
+| Retour à 5 °C sans redémarrage, arrêt de l’alarme et résolution de l’événement | À réaliser avec l’utilisateur |
 | Pause réseau Wokwi avec commande `n`, alarme autonome et reprise du tampon | À réaliser avec l’utilisateur |
 | Redémarrage réel du firmware, perte du tampon RAM et débordement de 120 mesures | À compléter pendant la recette Wokwi |
 | Démonstration complète de 30 minutes | Non exécutée à ce stade |
