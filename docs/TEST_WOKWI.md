@@ -83,6 +83,7 @@ Garder la coupure inférieure à 10 minutes pour ce premier essai. Les mesures s
 | Observation | Vérification utile |
 |---|---|
 | Erreur de compilation | Copier le texte complet de l’erreur et le nom du fichier concerné |
+| Icône Wi-Fi barrée, menu `Error`, 0 octet reçu | Arrêter la simulation, enregistrer le projet, actualiser avec `Ctrl+F5`, puis relancer. Si l’erreur persiste, transmettre les messages rouges de la console du navigateur liés à `netwi.wokwi.com` ou `WebSocket`. |
 | `TLS_WAIT` | Vérifier que le fichier de configuration a été créé et attendre la synchronisation UTC |
 | HTTP négatif | Vérifier que le tunnel et l’API fonctionnent ; transmettre le code négatif |
 | HTTP 401 | La clé copiée dans Wokwi ne correspond pas à la configuration locale |
@@ -94,3 +95,5 @@ Garder la coupure inférieure à 10 minutes pour ce premier essai. Les mesures s
 | Buzzer silencieux avec `ALARM` | Vérifier le volume du navigateur, celui de Wokwi et la connexion au GPIO 19 |
 
 L’envoi du premier résultat suffit pour poursuivre le diagnostic. Les quatre tests constituent la recette manuelle initiale ; ils ne sont pas déclarés réussis tant que leur exécution n’a pas été observée.
+
+Le bouton `Enable Private Gateway` ne répare pas automatiquement une erreur de la passerelle publique. La [documentation réseau Wokwi](https://docs.wokwi.com/guides/esp32-wifi) indique que la passerelle publique est disponible pour tous les utilisateurs ; la passerelle privée est une option payante distincte. Le parcours de ce projet utilise la passerelle publique et le tunnel HTTPS.
