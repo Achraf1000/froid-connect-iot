@@ -12,8 +12,8 @@ Ce rapport distingue les essais exécutés sur le poste des essais qui nécessit
 | Tests navigateur Playwright | **4 tests réussis** |
 | Contrôle Python Ruff | Réussi |
 | Construction React/Vite | Réussie, sorties séparées pour graphiques, carte et Firebase |
-| Compilation firmware ESP32 | Réussie avec PlatformIO / plateforme espressif32 6.10.0 |
-| Empreinte du firmware compilé | RAM statique : 52 292 octets ; flash : 941 053 octets, hors allocation dynamique pendant l’exécution |
+| Compilation firmware ESP32 | Réussie avec PlatformIO / plateforme espressif32 6.10.0 et DallasTemperature 3.9.0 |
+| Empreinte du firmware compilé | RAM statique : 52 292 octets ; flash : 940 841 octets, hors allocation dynamique pendant l’exécution |
 | MongoDB du projet | Conteneur dédié, accessible localement sur 27018 |
 | Émulateurs Firebase | Realtime Database et Authentication opérationnels |
 | Parcours de démonstration Python | 100 mesures envoyées via HTTP, enregistrées et publiées ; une excursion prolongée résolue au retour à la normale |
@@ -26,6 +26,8 @@ Ce rapport distingue les essais exécutés sur le poste des essais qui nécessit
 | Docker | Configuration Compose et construction des deux images réussies ; API, interface, MongoDB et Firebase vérifiés ensemble en conteneurs |
 
 Les mesures injectées par Python sont marquées `source=simulator`. Elles ne sont pas présentées comme des mesures issues de Wokwi.
+
+Le premier essai utilisateur dans Wokwi a échoué à l’installation de `DallasTemperature@3.11.0`. Cette version existe dans le registre PlatformIO, mais est absente de l’index Arduino consulté. Les dépendances ont été alignées sur `3.9.0`, présente dans cet index ; PlatformIO utilise l’archive officielle Arduino correspondante. La compilation locale avec cette correction a réussi (`firmware-build-dallas-3.9.0.log`).
 
 Le contrôle Docker a utilisé des conteneurs temporaires, une base séparée et les ports 8001/9001/9100 afin de conserver le tableau de bord de l’utilisateur sur 8000. Les 100 mesures de démonstration ont été acceptées, puis les quatre scénarios navigateur ont réussi sur cette instance, y compris la connexion Firebase. Les conteneurs temporaires ont ensuite été arrêtés. La commande Compose de démarrage du profil complet sur ses ports habituels n’a pas été exécutée simultanément aux services natifs.
 

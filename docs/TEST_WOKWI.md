@@ -28,7 +28,11 @@ Ouvrir [un nouveau projet ESP32 Wokwi](https://wokwi.com/projects/new/esp32).
 | `libraries.txt` | `firmware/libraries.txt` |
 | `coldchain_config.h` | `firmware/coldchain_config.h`, généré localement |
 
-Remplacer le contenu des deux onglets existants et ajouter les fichiers manquants avec le menu de fichiers de l’éditeur. Le gestionnaire de bibliothèques peut également servir à installer OneWire 2.3.8, DallasTemperature 3.11.0 et ArduinoJson 6.21.5.
+Remplacer le contenu des deux onglets existants et ajouter les fichiers manquants avec le menu de fichiers de l’éditeur. Le gestionnaire de bibliothèques peut également servir à installer OneWire 2.3.8, DallasTemperature 3.9.0 et ArduinoJson 6.21.5.
+
+Pour les onglets déjà présents (`sketch.ino` et `diagram.json`), copier-coller le contenu local dans l’éditeur avec `Ctrl+A`, puis `Ctrl+V`. L’essai d’import par `Upload file(s)...` a conservé les fichiers existants : ce menu convient aux deux fichiers manquants, mais ne suffit pas à remplacer le programme d’exemple. Le bon `sketch.ino` commence par les inclusions `Arduino.h`, `WiFi.h`, etc. ; il ne doit plus contenir `Hello, ESP32!`.
+
+La version DallasTemperature 3.11.0, disponible dans PlatformIO, n’est pas référencée dans l’index Arduino utilisé pour ce parcours Wokwi. Le fichier `libraries.txt` et la compilation locale utilisent donc la version 3.9.0. Si Wokwi affiche `Library 'DallasTemperature@3.11.0' not found`, remplacer cette ligne par `DallasTemperature@3.9.0`.
 
 Si l’interface d’ajout de fichiers diffère, envoyer une capture de la barre des onglets et du menu de l’éditeur. Ne pas inclure le contenu de `coldchain_config.h`, car il contient la clé de démonstration.
 
