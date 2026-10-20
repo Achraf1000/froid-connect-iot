@@ -18,8 +18,8 @@
     ["esp:18", "temp:DQ", "green", []],
     ["esp:3V3", "pullup:1", "red", []],
     ["pullup:2", "temp:DQ", "green", []],
-    ["esp:19", "buzzer:1", "orange", []],
-    ["esp:GND.2", "buzzer:2", "black", []],
+    ["esp:19", "buzzer:2", "orange", []],
+    ["esp:GND.2", "buzzer:1", "black", []],
     ["esp:23", "ledres:1", "purple", []],
     ["ledres:2", "alarm:A", "purple", []],
     ["alarm:C", "esp:GND.1", "black", []]
