@@ -29,6 +29,8 @@ Les mesures injectées par Python sont marquées `source=simulator`. Elles ne so
 
 Le premier essai utilisateur dans Wokwi a échoué à l’installation de `DallasTemperature@3.11.0`. Cette version existe dans le registre PlatformIO, mais est absente de l’index Arduino consulté. Les dépendances ont été alignées sur `3.9.0`, présente dans cet index ; PlatformIO utilise l’archive officielle Arduino correspondante. La compilation locale avec cette correction a réussi (`firmware-build-dallas-3.9.0.log`).
 
+L’essai utilisateur suivant confirme la compilation et le démarrage du programme complet dans Wokwi : le moniteur affiche `FROID CONNECT`, puis six mesures `seq=0` à `seq=5`, à `5.00 °C`, avec l’état `NORMAL`. La lecture du DS18B20 est donc observée. Aucune ligne HTTP n’est présente dans cet extrait. Au contrôle effectué après réception, MongoDB ne contient encore aucune mesure de source `wokwi`, alors que l’API locale, MongoDB, Firebase et le tunnel HTTPS répondent correctement. L’indication `net=active` du firmware signifie que les envois ne sont pas mis en pause ; elle ne prouve pas une connexion Wi-Fi ou un envoi réussi.
+
 Le contrôle Docker a utilisé des conteneurs temporaires, une base séparée et les ports 8001/9001/9100 afin de conserver le tableau de bord de l’utilisateur sur 8000. Les 100 mesures de démonstration ont été acceptées, puis les quatre scénarios navigateur ont réussi sur cette instance, y compris la connexion Firebase. Les conteneurs temporaires ont ensuite été arrêtés. La commande Compose de démarrage du profil complet sur ses ports habituels n’a pas été exécutée simultanément aux services natifs.
 
 Après le dernier ajustement des ports d’émulation configurables, le contrôle Ruff et les 44 tests Python sans services externes ont également réussi ; le test d’intégration externe avait réussi lors du passage complet de 45 tests précédent.
@@ -69,7 +71,8 @@ Les fichiers suivants sont générés dans `.runtime`, qui n’est pas versionn�
 
 | Essai | Statut |
 |---|---|
-| Lecture du DS18B20 dans le navigateur Wokwi et envoi réel vers le tunnel | À réaliser avec l’utilisateur |
+| Compilation, démarrage et lecture du DS18B20 dans le navigateur Wokwi | Confirmés par la capture et les six mesures à 5 °C transmises par l’utilisateur |
+| Envoi Wokwi réel vers le tunnel et affichage de ces mesures | À confirmer ; aucune mesure Wokwi reçue au dernier contrôle |
 | Buzzer effectivement audible et LED lors d’un dépassement prolongé | À réaliser avec l’utilisateur |
 | Pause réseau Wokwi avec commande `n`, alarme autonome et reprise du tampon | À réaliser avec l’utilisateur |
 | Redémarrage réel du firmware, perte du tampon RAM et débordement de 120 mesures | À compléter pendant la recette Wokwi |
