@@ -1,0 +1,67 @@
+const { test, expect } = require('@playwright/test')
+const fs = require('node:fs')
+const config = Object.fromEntries(fs.readFileSync('.env', 'utf8').split(/\r?\n/)
+  .filter(line => line.includes('=') && !line.startsWith('#'))
+  .map(line => [line.slice(0, line.indexOf('=')), line.slice(line.indexOf('=') + 1)]))
+
+async function login(page) {
+  await page.goto('/')
+  await page.getByLabel('Mot de passe du tableau de bord').fill(config.DASHBOARD_PASSWORD)
+  await page.getByRole('button', { name: 'Se connecter' }).click()
+  await expect(page.getByRole('heading', { name: 'Vue d’ensemble', exact: true })).toBeVisible()
+  await page.getByLabel('TRANSPORT SUIVI').selectOption('TRIP-DEMO-001')
+}
+
+test('connexion, mesures, alerte résolue et synchronisation Firebase', async ({ page }) => {
+  const crashes = []
+  page.on('pageerror', error => crashes.push(error.message))
+  await login(page)
+  await expect(page.getByText('Temps réel Firebase', { exact: false })).toBeVisible({ timeout: 20000 })
+  await expect(page.getByText('Résolue', { exact: true }).first()).toBeVisible()
+  await page.screenshot({ path: '.runtime/dashboard-desktop.png', fullPage: true })
+  await page.getByRole('button', { name: 'Mesures', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Mesures enregistrées' })).toBeVisible()
+  await expect(page.locator('tbody tr')).toHaveCount(25)
+  const download = page.waitForEvent('download')
+  await page.getByRole('link', { name: 'Exporter CSV' }).click()
+  expect((await download).suggestedFilename()).toBe('mesures.csv')
+  await page.getByRole('button', { name: 'Suivant', exact: true }).click()
+  await expect(page.getByText(/Page 2 \//)).toBeVisible()
+  expect(crashes).toEqual([])
+})
+
+test('filtres des alertes, déconnexion et rejet du mauvais mot de passe', async ({ page }) => {
+  await page.goto('/')
+  await page.getByLabel('Mot de passe du tableau de bord').fill('incorrect-password')
+  await page.getByRole('button', { name: 'Se connecter' }).click()
+  await expect(page.getByRole('alert')).toContainText('incorrect')
+  await login(page)
+  await page.getByRole('button', { name: 'Alertes', exact: true }).click()
+  await page.getByLabel('Filtrer les alertes').selectOption('resolved')
+  await expect(page.getByText('Résolue', { exact: true }).first()).toBeVisible()
+  await page.getByLabel('Filtrer les alertes').selectOption('active')
+  await expect(page.getByText('Aucune alerte enregistrée')).toBeVisible()
+  await page.getByRole('button', { name: 'Se déconnecter' }).click()
+  await expect(page.getByLabel('Mot de passe du tableau de bord')).toBeVisible()
+})
+
+test('mobile : navigation, contenu lisible et absence de débordement', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  await login(page)
+  await expect(page.getByRole('heading', { name: 'Position du véhicule' })).toBeVisible()
+  await page.screenshot({ path: '.runtime/dashboard-mobile.png', fullPage: true })
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)
+  expect(overflow).toBe(false)
+  await page.getByRole('button', { name: 'Mesures', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Mesures enregistrées' })).toBeVisible()
+})
+
+test('perte API signalée tout en conservant les dernières valeurs', async ({ page }) => {
+  await login(page)
+  await expect(page.getByText('mesures conservées', { exact: false })).not.toHaveText('0 mesures conservées')
+  await page.route('**/api/v1/vehicles/**', route => route.abort())
+  await expect(page.getByRole('alert')).toContainText('liaison', { timeout: 10000 })
+  await expect(page.getByRole('heading', { name: 'Évolution de la température' })).toBeVisible()
+  await page.unroute('**/api/v1/vehicles/**')
+  await expect(page.getByRole('alert')).toHaveCount(0, { timeout: 10000 })
+})

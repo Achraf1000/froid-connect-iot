@@ -1,0 +1,13 @@
+{
+  "name": "cold-chain-tooling",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "emulators": "firebase emulators:start --only database,auth --project demo-cold-chain",
+    "test:browser": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "firebase-tools": "^14.22.0"
+  }
+}

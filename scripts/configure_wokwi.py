@@ -1,0 +1,77 @@
+"""Generate ignored local config with verified TLS CA; do not print device keys."""
+import argparse
+import re
+import socket
+import ssl
+import warnings
+import zipfile
+from pathlib import Path
+from urllib.parse import urlparse
+
+import certifi
+import httpx
+from cryptography import x509
+from cryptography.hazmat.primitives.serialization import Encoding
+from cryptography.utils import CryptographyDeprecationWarning
+from dotenv import dotenv_values
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def find_root(host):
+    context = ssl.create_default_context(cafile=certifi.where())
+    with socket.create_connection((host, 443), timeout=10) as sock:
+        with context.wrap_socket(sock, server_hostname=host) as tls:
+            chain = tls._sslobj.get_unverified_chain()
+            last = chain[-1].public_bytes()
+            if isinstance(last, str):
+                last = last.encode()
+            certificate = x509.load_pem_x509_certificate(last)
+    bundle = Path(certifi.where()).read_bytes()
+    for pem in re.findall(b"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----", bundle, re.S):
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("error", CryptographyDeprecationWarning)
+                root = x509.load_pem_x509_certificate(pem)
+        except (ValueError, CryptographyDeprecationWarning):
+            continue
+        if root.subject == certificate.issuer or root.subject == certificate.subject:
+            return root.public_bytes(Encoding.PEM).decode()
+    raise RuntimeError("CA racine absente du magasin de confiance ; vérifier le tunnel.")
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--url")
+    parser.add_argument("--transport", default="TRIP-DEMO-001")
+    args = parser.parse_args()
+    url = args.url
+    if not url:
+        tunnels = httpx.get("http://127.0.0.1:4040/api/tunnels").json()["tunnels"]
+        url = next(t["public_url"] for t in tunnels if t["public_url"].startswith("https://"))
+    parsed = urlparse(url)
+    if parsed.scheme != "https" or parsed.path not in ("", "/") or parsed.username or parsed.password:
+        raise ValueError("Une origine HTTPS sans chemin ni identifiant est requise.")
+    if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", args.transport):
+        raise ValueError("Identifiant de transport invalide.")
+    httpx.get(url.rstrip("/") + "/health", headers={"ngrok-skip-browser-warning": "1"}, timeout=15).raise_for_status()
+    ca = find_root(parsed.hostname)
+    config = dotenv_values(ROOT / ".env")
+    text = (
+        '#pragma once\n'
+        f'constexpr char API_BASE_URL[] = "{url.rstrip("/")}";\n'
+        f'constexpr char DEVICE_API_KEY[] = "{config["DEVICE_API_KEY"]}";\n'
+        f'constexpr char TRANSPORT_ID[] = "{args.transport}";\n'
+        f'constexpr char ROOT_CA[] = R"CERT({ca})CERT";\n'
+    )
+    (ROOT / "firmware/coldchain_config.h").write_text(text, encoding="utf-8")
+    archive = ROOT / ".runtime/wokwi-import.zip"
+    with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as z:
+        for name in ("sketch.ino", "diagram.json", "libraries.txt", "coldchain_config.h"):
+            z.write(ROOT / "firmware" / name, name)
+    (ROOT / ".runtime/tunnel-url.txt").write_text(url, encoding="utf-8")
+    print("Configuration Wokwi et archive locale générées. Clé non affichée.")
+
+
+if __name__ == "__main__":
+    main()

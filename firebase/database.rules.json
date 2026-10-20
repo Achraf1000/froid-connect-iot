@@ -1,0 +1,14 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "transports": {
+      "$transport": {
+        "state": {
+          ".read": "auth != null && auth.uid === 'dashboard'",
+          ".write": false
+        }
+      }
+    }
+  }
+}

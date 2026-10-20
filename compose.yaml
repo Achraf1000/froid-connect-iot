@@ -1,0 +1,51 @@
+name: cold-chain-iot
+services:
+  mongo:
+    image: mongo:8.0
+    ports:
+      - "127.0.0.1:27018:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+    restart: unless-stopped
+  firebase:
+    profiles: ["full"]
+    build:
+      context: .
+      dockerfile: firebase/Dockerfile
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9099:9099"
+    volumes:
+      - firebase-data:/data
+    restart: unless-stopped
+  app:
+    profiles: ["full"]
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file: .env
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      FIREBASE_DATABASE_URL: http://firebase:9000?ns=demo-cold-chain-default-rtdb
+      FRONTEND_ORIGIN: http://localhost:8000
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      firebase:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+volumes:
+  mongo-data:
+  firebase-data:

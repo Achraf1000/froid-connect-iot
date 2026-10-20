@@ -1,0 +1,13 @@
+.git
+.venv
+.tools
+.runtime
+.env
+node_modules
+frontend/node_modules
+frontend/dist
+firmware
+**/__pycache__
+**/*.log
+test-results
+playwright-report
