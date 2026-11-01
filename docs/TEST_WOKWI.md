@@ -1,5 +1,9 @@
 # Premier test Wokwi — à réaliser ensemble
 
+**Présentation du 1er novembre 2026 :** le [projet Wokwi enregistré](https://wokwi.com/projects/478408633765115905) permet de montrer le montage et l'alarme locale. Pour une démonstration immédiate du tableau de bord, utiliser [PRESENTER_LE_PROJET.md](PRESENTER_LE_PROJET.md). La liaison HTTPS directe Wokwi → serveur n'est pas encore validée.
+
+Le firmware local `netfix-2` corrige le redémarrage dû à la tâche réseau et ajoute les diagnostics `wifi=connected`, `clock=ready` et `TLS_ERROR`. Une erreur HTTPS ne doit plus arrêter les mesures et l'alarme locale. La version est affichée après `FROID CONNECT` au démarrage. Ne pas confondre un Wi-Fi connecté avec une réponse `HTTP ... status=201`.
+
 Les fichiers sont prêts. Aucune clé API du site Wokwi n’est nécessaire pour utiliser le simulateur dans le navigateur. Un compte Wokwi sert à sauvegarder votre projet. Une licence d’extension VS Code ou un jeton de CI ne sont pas nécessaires pour ce premier essai.
 
 ## Préparer le poste

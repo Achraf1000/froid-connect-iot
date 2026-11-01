@@ -167,7 +167,10 @@ function Dashboard({ onLogout }) {
         const items = await api('/api/v1/transports')
         if (cancelled) return
         setTransports(items)
-        if (!selected && items.length) setSelected(items.find(t => t.id === 'TRIP-DEMO-001')?.id || items[0].id)
+        if (!selected && items.length) {
+          const requested = new URLSearchParams(window.location.search).get('transport')
+          setSelected(items.find(t => t.id === requested)?.id || items.find(t => t.id === 'TRIP-DEMO-001')?.id || items[0].id)
+        }
       } catch (e) { if (e.status === 401) onLogout(); else setError(e.message) }
     }
     load(); const id = setInterval(load, 10000)
@@ -243,6 +246,7 @@ function Dashboard({ onLogout }) {
           <span className="vehicle-code">VEH-001</span><span className={`pill ${transport?.status === 'completed' ? 'muted' : 'blue'}`}>{transport?.status === 'completed' ? 'Terminé' : 'En cours'}</span>
           <div className="transport-route"><MapPin size={15} />{transport?.origin || 'Tunis'}<ArrowRight size={15} />{transport?.destination || 'La Marsa'}</div>
         </section>
+        {state?.source === 'simulator' && <div className="notice simulation"><Activity size={18} />Démonstration · Température et trajet simulés, historique enregistré.</div>}
         {error && <div className="notice error" role="alert"><WifiOff size={18} />{error}</div>}
         {actionError && <div className="notice error" role="alert">{actionError}<button className="icon-button" onClick={() => setActionError('')} aria-label="Fermer l’erreur"><X size={15} /></button></div>}
         {state && !fresh && !error && <div className="notice warning"><Clock3 size={18} />{age === null ? 'L’horloge du capteur n’est pas synchronisée.' : 'Les données sont anciennes. Le dernier état connu est conservé.'}</div>}

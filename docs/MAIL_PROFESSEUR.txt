@@ -1,0 +1,23 @@
+Objet : Avancement du projet IoT de surveillance de la chaîne du froid — Achraf Abdelhedi
+
+Bonjour,
+
+Je vous transmets un point d'avancement de mon projet de surveillance de la chaîne du froid, accompagné de captures du tableau de bord et de la simulation Wokwi.
+
+Les éléments suivants sont réalisés :
+- Mise en place de l'environnement de développement, de l'API FastAPI et du stockage de l'historique dans MongoDB.
+- Publication de l'état courant dans Firebase, utilisé pour cette démonstration avec ses émulateurs locaux.
+- Développement d'un tableau de bord React présentant la température, son historique, la position GPS simulée, les alertes et l'export CSV.
+- Réalisation du montage Wokwi avec ESP32, capteur DS18B20, buzzer et voyant rouge.
+- Vérification de la lecture à 5 °C et du déclenchement de l'alarme après 30 secondes à 12 °C, conformément aux seuils de démonstration de 2 à 8 °C.
+
+Les 45 tests du serveur et de l'intégration locale, ainsi que les 4 tests du tableau de bord dans le navigateur, ont réussi. Un guide et un lanceur par double-clic permettent de redémarrer le projet sur mon poste.
+
+Une démonstration guidée permet maintenant d'envoyer des mesures simulées à la vraie API, de déclencher une alerte à 12 °C, de revenir à 5 °C et de consulter l'historique. Ces données sont enregistrées dans MongoDB, synchronisées avec Firebase local et identifiées comme « Simulateur Python ». Le montage Wokwi présente séparément le fonctionnement du capteur, du voyant et du buzzer.
+
+La transmission HTTPS directe entre Wokwi et le serveur reste à finaliser. Le redémarrage de l'ESP32 pendant les tentatives réseau a été corrigé ; les mesures et l'alarme restent actives. Les captures du tableau de bord ne sont donc pas présentées comme des mesures reçues de Wokwi.
+
+Je reste à votre disposition pour toute remarque sur les choix techniques et les prochaines étapes de validation.
+
+Cordialement,
+Achraf Abdelhedi

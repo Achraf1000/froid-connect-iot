@@ -6,6 +6,10 @@ Les seuils **2–8 °C**, le délai d’alarme **30 secondes** et le trajet Tuni
 
 ## Sur ce poste
 
+**Présentation immédiate : double-cliquer sur `DEMONSTRATION.cmd`.** Le [guide de présentation](docs/PRESENTER_LE_PROJET.md) donne le déroulé, les touches pour déclencher une alerte et les explications à donner. Le tableau de bord reçoit des données explicitement simulées par Python via la vraie API, MongoDB et Firebase local. La démonstration du montage Wokwi reste indépendante tant que sa transmission HTTPS n'est pas validée.
+
+Pour démarrer sans saisir de commandes, double-cliquer sur **LANCER_PROJET.cmd**. Le [guide de démarrage rapide](docs/DEMARRAGE_RAPIDE.md) explique la connexion et les fichiers à actualiser dans Wokwi. **ARRETER_PROJET.cmd** arrête les services en conservant les données.
+
 Le projet se trouve dans `C:\IRM\IOT\cold-chain-iot`. Le tableau de bord est servi à **http://127.0.0.1:8000**. Son mot de passe est dans `.runtime/acces-local.txt`, généré localement et exclu de Git.
 
 L’environnement préparé utilise Node.js 24 dans `.tools`, Python dans `.venv`, MongoDB dans un conteneur dédié sur le port **27018**, et les émulateurs Firebase locaux sur **9000/9099**. La base MongoDB préexistante sur 27017 n’est pas utilisée.
@@ -26,7 +30,7 @@ Le script lance les services en arrière-plan. Si PowerShell bloque les scripts 
 powershell -ExecutionPolicy Bypass -File .\scripts\start.ps1 -Tunnel
 ```
 
-Le tunnel utilise la configuration ngrok déjà présente sur le poste. Son URL est enregistrée dans `.runtime/tunnel-url.txt` après préparation Wokwi. Le démarrage des émulateurs peut prendre quelques secondes ; consulter les journaux `.runtime` en cas de problème.
+Le tunnel utilise la configuration ngrok déjà présente sur le poste. Le lanceur attend les services puis prépare automatiquement les fichiers Wokwi ; son URL est enregistrée dans `.runtime/tunnel-url.txt`. Le démarrage des émulateurs peut prendre quelques secondes ; consulter les journaux `.runtime` en cas de problème.
 
 Pour arrêter les processus de développement lancés par le script :
 

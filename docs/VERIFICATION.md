@@ -1,8 +1,25 @@
-# Vérification de la première version
+# Vérification du prototype
+
+## Mise à jour du 1er novembre 2026
+
+**Périmètre retenu : Firebase local et démonstration guidée.** Aucun projet Firebase cloud n'est requis. Le volet IA reste facultatif et non implémenté. À la demande de l'utilisateur, la présentation immédiate utilise un scénario logiciel explicitement simulé pour le tableau de bord, tandis que Wokwi présente séparément le capteur et l'alarme locale.
+
+- Les **45 tests Python/API/intégration** ont été relancés avec succès, ainsi que les **4 tests navigateur**. La construction React et le contrôle Ruff réussissent.
+- Le lanceur démarre Docker Desktop si nécessaire et attend les services. `DEMONSTRATION.cmd` démarre un scénario sans dépendre de ngrok, avec un menu normal/chaud/froid/automatique/pause/reprise/arrêt. Chaque session crée un transport séparé et conserve les données précédentes.
+- Le graphique est initialisé avec 60 mesures synthétiques historiques, puis une mesure fraîche est envoyée toutes les cinq secondes. La source reste `simulator`, y compris lors des alertes ; le bandeau du tableau de bord le précise.
+- Le parcours de présentation a été exécuté dans Chromium : sélection du transport par son URL, mesures fraîches, MongoDB disponible, Firebase à jour, alerte active à 12 °C puis résolue à 5 °C, historique et téléchargement CSV. La pause des envois fait apparaître le message de données anciennes ; la reprise rétablit une mesure récente. Ces contrôles concernent le scénario Python.
+- Le firmware `netfix-2` compile (RAM statique 52 292 octets, flash 940 213 octets). La tâche réseau partage la priorité de la tâche inactive, afin que le watchdog reste servi pendant les calculs TLS. Les watchdogs et la validation des certificats restent actifs.
+- Une exécution du firmware compilé dans le navigateur Wokwi a dépassé **350 secondes** de simulation sans redémarrage, avec des mesures à 12 °C et une alarme à partir de 30 secondes. Les diagnostics flottants et les appels au buzzer ont également été corrigés.
+- Le Wi-Fi public Wokwi et l'heure UTC fonctionnent dans cet essai. La négociation HTTPS échoue encore : une capture réseau montre une fermeture serveur avant la fin de l'échange cryptographique utilisant la courbe P-521. **Aucun envoi Wokwi réussi vers MongoDB n'a été observé.** L'accès `/health` depuis le PC ne valide pas cette liaison.
+- La génération de la configuration utilise une chaîne de certificats vérifiée et sélectionne son autorité émettrice. Cette correction ne suffit pas à elle seule à résoudre le délai de négociation dans Wokwi.
+
+Le parcours de présentation est décrit dans [PRESENTER_LE_PROJET.md](PRESENTER_LE_PROJET.md). Les captures de la session locale sont enregistrées dans `.runtime/presentation-*.png` ; elles représentent des données Python, pas une transmission Wokwi.
+
+## Historique des premiers essais
 
 Date : 20 octobre 2026.
 
-Ce rapport distingue les essais exécutés sur le poste des essais qui nécessitent encore une manipulation dans Wokwi ou un compte Firebase cloud.
+Les résultats ci-dessous décrivent les premiers essais. Les limites Wokwi restent indiquées ; Firebase cloud est hors du périmètre choisi pour la démonstration.
 
 ## Résultats obtenus
 
@@ -82,8 +99,8 @@ Les fichiers suivants sont générés dans `.runtime`, qui n’est pas versionn�
 | Pause réseau Wokwi avec commande `n`, alarme autonome et reprise du tampon | À réaliser avec l’utilisateur |
 | Redémarrage réel du firmware, perte du tampon RAM et débordement de 120 mesures | À compléter pendant la recette Wokwi |
 | Démonstration complète de 30 minutes | Non exécutée à ce stade |
-| Lecture/écriture sur un vrai projet Firebase cloud | En attente des paramètres du projet et des droits locaux |
-| Validation du sujet, de l’IA et de la grille pédagogique | En attente de l’énoncé ou du retour de l’enseignant |
+| Lecture/écriture sur un vrai projet Firebase cloud | Hors périmètre : l'utilisateur a choisi Firebase local |
+| Extension IA | Facultative dans la proposition source ; non incluse dans cette démonstration |
 
 La compilation firmware ne constitue pas une preuve d’exécution de la simulation ni du fonctionnement audible du buzzer. Le [guide Wokwi](TEST_WOKWI.md) précise les manipulations et les captures à transmettre.
 

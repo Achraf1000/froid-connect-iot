@@ -77,6 +77,8 @@ void acknowledge(uint32_t sequence) {
 }
 
 void networkTask(void *) {
+  Serial.printf("NETWORK_TASK priority=%u core=%d\n",
+                (unsigned int)uxTaskPriorityGet(nullptr), xPortGetCoreID());
   WiFi.mode(WIFI_STA);
   WiFi.begin("Wokwi-GUEST", "", 6);
   configTime(0, 0, "pool.ntp.org", "time.google.com");
@@ -138,7 +140,7 @@ void networkTask(void *) {
     bool started;
     if (secure) {
       tls.setCACert(ROOT_CA);
-      tls.setHandshakeTimeout(5);
+      tls.setHandshakeTimeout(30);
       started = http.begin(tls, url);
     } else {
       started = http.begin(plain, url); // Local/private gateway only.
@@ -151,7 +153,14 @@ void networkTask(void *) {
     http.setTimeout(3000);
     http.addHeader("Content-Type", "application/json");
     http.addHeader("X-Device-Key", DEVICE_API_KEY);
+    Serial.printf("HTTP_START seq=%lu mode=%s\n",
+                  (unsigned long)reading.sequence, secure ? "HTTPS" : "HTTP");
     int code = http.POST(payload);
+    if (secure && code < 0) {
+      char detail[160] = {};
+      int tlsCode = tls.lastError(detail, sizeof(detail));
+      Serial.printf("TLS_ERROR code=%d detail=%s\n", tlsCode, detail);
+    }
     http.end();
     Serial.printf("HTTP seq=%lu status=%d\n", (unsigned long)reading.sequence, code);
     if (code == 200 || code == 201) {
@@ -177,15 +186,21 @@ void setup() {
   sensors.setResolution(12);
   queueMutex = xSemaphoreCreateMutex();
   snprintf(bootId, sizeof(bootId), "%08lx%08lx", (unsigned long)esp_random(), (unsigned long)esp_random());
-  xTaskCreatePinnedToCore(networkTask, "network", 16384, nullptr, 1, nullptr, 0);
-  Serial.println("FROID CONNECT | 2..8 C | delay=30s | sample=5s");
+  Serial.println("FROID CONNECT | 2..8 C | delay=30s | sample=5s | firmware=netfix-2");
   Serial.println("Serial command 'n': pause/resume outgoing HTTP (local alarm stays active)");
+  // TLS certificate verification can consume several seconds of CPU in Wokwi.
+  // Share priority 0 with IDLE0 so tick time-slicing keeps the task watchdog
+  // serviced during crypto work. Acquisition/alarm stay on the other core.
+  // Keep certificate verification and both watchdogs enabled.
+  BaseType_t created = xTaskCreatePinnedToCore(
+      networkTask, "network", 16384, nullptr, tskIDLE_PRIORITY, nullptr, 0);
+  if (created != pdPASS) Serial.println("NETWORK_TASK_FAILED: insufficient task resources");
 }
 
 void loop() {
   static uint64_t nextSample = 0, excursionStart = 0, previousSample = 0;
   static uint32_t sequence = 0;
-  static bool pending = false, alarm = false;
+  static bool pending = false, alarm = false, buzzerActive = false;
   if (Serial.available() && Serial.read() == 'n') {
     networkPaused = !networkPaused;
     Serial.println(networkPaused ? "NETWORK_PAUSED" : "NETWORK_RESUMED");
@@ -197,8 +212,10 @@ void loop() {
   now = esp_timer_get_time() / 1000;
   // Schedule from the acquisition instant, independently of network requests.
   nextSample = now + SAMPLE_MS - 750; // 12-bit conversion takes approximately 750 ms.
-  bool valid = isfinite(temperature) && temperature != DEVICE_DISCONNECTED_C
-               && temperature >= -55 && temperature <= 125;
+  // Ordered bounds also reject NaN and infinities, without the Xtensa ULT.S
+  // instruction emitted by isfinite(), which Wokwi does not implement.
+  bool valid = temperature >= -55 && temperature <= 125
+               && temperature != DEVICE_DISCONNECTED_C;
   if (previousSample && now - previousSample > MAX_GAP_MS) pending = false;
   bool outside = valid && (temperature < MIN_C || temperature > MAX_C);
   if (outside) {
@@ -206,17 +223,20 @@ void loop() {
     alarm = now - excursionStart >= ALERT_MS;
   } else { pending = false; alarm = false; }
   digitalWrite(LED_PIN, alarm ? HIGH : LOW);
-  if (alarm) tone(BUZZER_PIN, 1400);
-  else noTone(BUZZER_PIN);
+  if (alarm && !buzzerActive) tone(BUZZER_PIN, 1400);
+  if (!alarm && buzzerActive) noTone(BUZZER_PIN);
+  buzzerActive = alarm;
   size_t point = min((size_t)(sequence / 6), ROUTE_SIZE - 1);
   Reading reading{sequence, now, time(nullptr), temperature,
                   route[point][0], route[point][1], valid, alarm, 0};
   enqueue(reading);
-  Serial.printf("MEASURE seq=%lu temp=%.2f state=%s elapsed=%lus net=%s\n",
+  Serial.printf("MEASURE seq=%lu temp=%.2f state=%s elapsed=%lus net=%s wifi=%s clock=%s\n",
                 (unsigned long)sequence, temperature,
                 !valid ? "SENSOR_ERROR" : alarm ? "ALARM" : pending ? "PENDING" : "NORMAL",
                 (unsigned long)(pending ? (now - excursionStart) / 1000 : 0),
-                networkPaused ? "paused" : "active");
+                networkPaused ? "paused" : "active",
+                WiFi.status() == WL_CONNECTED ? "connected" : "waiting",
+                time(nullptr) > 1700000000 ? "ready" : "waiting");
   previousSample = now;
   sequence++;
 }

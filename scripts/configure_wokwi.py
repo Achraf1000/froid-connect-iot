@@ -3,7 +3,6 @@ import argparse
 import re
 import socket
 import ssl
-import warnings
 import zipfile
 from pathlib import Path
 from urllib.parse import urlparse
@@ -12,32 +11,26 @@ import certifi
 import httpx
 from cryptography import x509
 from cryptography.hazmat.primitives.serialization import Encoding
-from cryptography.utils import CryptographyDeprecationWarning
 from dotenv import dotenv_values
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def find_root(host):
+def find_trusted_ca(host):
+    """Pin the issuing CA from a fully verified chain to reduce ESP32 TLS work."""
     context = ssl.create_default_context(cafile=certifi.where())
     with socket.create_connection((host, 443), timeout=10) as sock:
         with context.wrap_socket(sock, server_hostname=host) as tls:
-            chain = tls._sslobj.get_unverified_chain()
-            last = chain[-1].public_bytes()
-            if isinstance(last, str):
-                last = last.encode()
-            certificate = x509.load_pem_x509_certificate(last)
-    bundle = Path(certifi.where()).read_bytes()
-    for pem in re.findall(b"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----", bundle, re.S):
-        try:
-            with warnings.catch_warnings():
-                warnings.simplefilter("error", CryptographyDeprecationWarning)
-                root = x509.load_pem_x509_certificate(pem)
-        except (ValueError, CryptographyDeprecationWarning):
-            continue
-        if root.subject == certificate.issuer or root.subject == certificate.subject:
-            return root.public_bytes(Encoding.PEM).decode()
-    raise RuntimeError("CA racine absente du magasin de confiance ; vérifier le tunnel.")
+            chain = tls._sslobj.get_verified_chain()
+            if len(chain) < 2:
+                raise RuntimeError("La chaine HTTPS verifiee ne contient pas de CA.")
+            issuer_pem = chain[1].public_bytes()
+            if isinstance(issuer_pem, str):
+                issuer_pem = issuer_pem.encode()
+    issuer = x509.load_pem_x509_certificate(issuer_pem)
+    if not issuer.extensions.get_extension_for_class(x509.BasicConstraints).value.ca:
+        raise RuntimeError("Le certificat selectionne n'est pas une autorite de confiance.")
+    return issuer.public_bytes(Encoding.PEM).decode()
 
 
 def main():
@@ -55,7 +48,7 @@ def main():
     if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", args.transport):
         raise ValueError("Identifiant de transport invalide.")
     httpx.get(url.rstrip("/") + "/health", headers={"ngrok-skip-browser-warning": "1"}, timeout=15).raise_for_status()
-    ca = find_root(parsed.hostname)
+    ca = find_trusted_ca(parsed.hostname)
     config = dotenv_values(ROOT / ".env")
     text = (
         '#pragma once\n'
