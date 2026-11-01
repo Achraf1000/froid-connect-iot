@@ -4,6 +4,21 @@ Prototype pédagogique pour un véhicule simulé : ESP32 et DS18B20 dans Wokwi, 
 
 Les seuils **2–8 °C**, le délai d’alarme **30 secondes** et le trajet Tunis–La Marsa sont fictifs. L’extension prédictive n’est pas incluse dans cette version.
 
+**Auteur : Achraf Abdelhedi** · [Simulation Wokwi](https://wokwi.com/projects/478408633765115905) · [Guide de présentation](docs/PRESENTER_LE_PROJET.md) · [Bilan des vérifications](docs/VERIFICATION.md)
+
+![Tableau de bord Froid Connect — scénario de démonstration avec une alerte thermique](docs/captures/01-alerte-demonstration.png)
+
+La capture montre des mesures synthétiques envoyées par Python à la vraie API, conservées dans MongoDB et synchronisées avec Firebase local. Le capteur et l'alarme locale ont été observés dans Wokwi ; la transmission HTTPS directe Wokwi → serveur reste à finaliser.
+
+## Récupérer le projet
+
+```powershell
+git clone https://github.com/Achraf1000/froid-connect-iot.git
+cd froid-connect-iot
+```
+
+Suivre ensuite la section **Installation sur une autre machine Windows**. Les fichiers `.env`, `firmware/coldchain_config.h`, les bases de données, les journaux et les fichiers d'exécution locaux ne sont pas publiés. Les scripts génèrent une configuration propre au poste.
+
 ## Sur ce poste
 
 **Présentation immédiate : double-cliquer sur `DEMONSTRATION.cmd`.** Le [guide de présentation](docs/PRESENTER_LE_PROJET.md) donne le déroulé, les touches pour déclencher une alerte et les explications à donner. Le tableau de bord reçoit des données explicitement simulées par Python via la vraie API, MongoDB et Firebase local. La démonstration du montage Wokwi reste indépendante tant que sa transmission HTTPS n'est pas validée.

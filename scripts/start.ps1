@@ -79,6 +79,7 @@ if ($Tunnel) {
 Wait-LocalPort 27018 'MongoDB'
 Wait-LocalPort 9000 'Firebase Database'
 Wait-LocalPort 9099 'Firebase Authentication'
+Wait-LocalPort 4000 'Interface Firebase'
 Wait-LocalPort 8000 'API'
 if ($Tunnel) {
     Wait-LocalPort 4040 'ngrok'
@@ -87,5 +88,6 @@ if ($Tunnel) {
 }
 & "$taskRoot\.venv\Scripts\python.exe" "$taskRoot\scripts\local_access.py"
 Write-Host 'Tableau de bord : http://127.0.0.1:8000'
+Write-Host 'Interface Firebase locale : http://127.0.0.1:4000/database/demo-cold-chain-default-rtdb/data'
 Write-Host 'Mot de passe : .runtime\acces-local.txt'
 Write-Host 'Journaux : .runtime\api.err.log et .runtime\firebase.out.log'

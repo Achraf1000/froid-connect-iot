@@ -169,7 +169,10 @@ function Dashboard({ onLogout }) {
         setTransports(items)
         if (!selected && items.length) {
           const requested = new URLSearchParams(window.location.search).get('transport')
-          setSelected(items.find(t => t.id === requested)?.id || items.find(t => t.id === 'TRIP-DEMO-001')?.id || items[0].id)
+          const requestedTransport = requested === 'latest'
+            ? items.find(t => t.id.startsWith('PRESENTATION-'))
+            : items.find(t => t.id === requested)
+          setSelected(requestedTransport?.id || items.find(t => t.id === 'TRIP-DEMO-001')?.id || items[0].id)
         }
       } catch (e) { if (e.status === 401) onLogout(); else setError(e.message) }
     }

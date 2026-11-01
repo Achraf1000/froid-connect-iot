@@ -137,7 +137,7 @@ def run(duration):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--command", choices=COMMANDS)
-    parser.add_argument("--duration", type=int, default=1800)
+    parser.add_argument("--duration", type=int, default=14400)
     args = parser.parse_args()
     RUNTIME.mkdir(exist_ok=True)
     if args.command:

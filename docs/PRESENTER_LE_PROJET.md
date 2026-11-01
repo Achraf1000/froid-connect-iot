@@ -18,7 +18,9 @@ Phrase à dire : « Je vais montrer le fonctionnement du dispositif dans Wokwi, 
 4. Dans le menu noir, appuyez sur **1** : le tableau de bord reste à **5 °C** pour commencer. Attendez environ 5 à 8 secondes.
 5. Ouvrez [votre projet Wokwi](https://wokwi.com/projects/478408633765115905) dans un autre onglet.
 
-Le mode automatique démarre par défaut : 20 s à température normale, 45 s à 12 °C, puis retour à la normale. Il recommence toutes les 150 s et s'arrête après 30 minutes. Le choix **1** permet d'attendre le professeur sans déclencher d'alarme. Si vous fermez seulement le menu, les mesures continuent ; le choix **7** les arrête.
+Le mode automatique démarre par défaut : 20 s à température normale, 45 s à 12 °C, puis retour à la normale. Il recommence toutes les 150 s et s'arrête après **4 heures**. Le choix **1** permet d'attendre le professeur sans déclencher d'alarme. Si vous fermez seulement le menu, les mesures continuent ; le choix **7** les arrête. Après expiration, relancez **DEMONSTRATION.cmd** pour créer une nouvelle session.
+
+Le lien **http://127.0.0.1:8000/?transport=latest** sélectionne automatiquement la présentation la plus récente à l'ouverture. Conservez ce lien plutôt que celui d'une ancienne session. S'il était déjà ouvert avant la relance, actualisez la page.
 
 Si vous ouvrez seulement `http://127.0.0.1:8000`, sélectionnez **Présentation guidée · HH:MM** dans **TRANSPORT SUIVI**. L'ancien transport « Démonstration · Tunis → La Marsa » contient un historique différent.
 
@@ -39,6 +41,8 @@ Si vous ouvrez seulement `http://127.0.0.1:8000`, sélectionnez **Présentation 
 Pour changer la température initiale dans Wokwi : arrêtez la simulation avec ■, ouvrez `diagram.json`, recherchez `"temperature": "12"`, remplacez `12` par `5`, puis relancez ▶. Cela démontre le démarrage à température normale ; ce n'est pas un test de retour à la normale pendant la même exécution.
 
 ## Essai supplémentaire si le professeur le demande
+
+Pour montrer Firebase, ouvrez **http://127.0.0.1:4000/database/demo-cold-chain-default-rtdb/data**. Dans **Realtime Database**, développez `transports`, choisissez le transport `PRESENTATION-...` correspondant à votre session, puis `state`. Montrez `temperature_c`, `thermal_status`, `sequence` et `measured_at`. Il s'agit de l'interface officielle des émulateurs Firebase locaux ; l'historique complet reste dans MongoDB.
 
 Dans le menu, appuyez sur **5** pour suspendre les envois. Après environ 20 s, le tableau de bord signale des données anciennes et conserve les dernières valeurs. Appuyez sur **6** pour reprendre ; une mesure récente doit arriver sous 8 s. Cet essai suspend le simulateur Python, il ne coupe pas le Wi-Fi Wokwi et ne teste pas son tampon.
 

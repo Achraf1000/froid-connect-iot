@@ -1,3 +1,4 @@
+param([switch]$NoBrowser, [ValidateRange(60, 86400)][int]$DurationSeconds = 14400)
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $taskRoot
@@ -11,7 +12,7 @@ if (Test-Path -LiteralPath '.runtime\presentation.json') {
 }
 if (-not $taskRunning) {
     $taskProcess = Start-Process -FilePath "$taskRoot\.venv\Scripts\python.exe" `
-        -ArgumentList @('-u',"$taskRoot\scripts\presentation.py",'--duration','1800') `
+        -ArgumentList @('-u',"$taskRoot\scripts\presentation.py",'--duration',"$DurationSeconds") `
         -WorkingDirectory $taskRoot -WindowStyle Hidden `
         -RedirectStandardOutput '.runtime\presentation.out.log' `
         -RedirectStandardError '.runtime\presentation.err.log' -PassThru
@@ -31,4 +32,5 @@ $taskServices = Get-Content -LiteralPath '.runtime\services.json' -Raw | Convert
 $taskServices | Add-Member -NotePropertyName 'presentation' -NotePropertyValue $taskStatus.pid -Force
 $taskServices | ConvertTo-Json | Set-Content -LiteralPath '.runtime\services.json' -Encoding UTF8
 Write-Host "Demonstration prete : $($taskStatus.url)"
-Start-Process $taskStatus.url
+Write-Host 'Lien permanent : http://127.0.0.1:8000/?transport=latest'
+if (-not $NoBrowser) { Start-Process 'http://127.0.0.1:8000/?transport=latest' }
